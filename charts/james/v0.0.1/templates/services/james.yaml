@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "james.fullname" . }}-james
+  labels:
+    app: {{ template "james.name" . }}-james
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  {{- if .Values.ingress.james.enabled }}
+  type: ClusterIP
+  {{- else }}
+  type: {{ .Values.service.james.type }}
+  {{- if (or (eq .Values.service.james.type "LoadBalancer") (eq .Values.service.james.type "NodePort")) }}
+  externalTrafficPolicy: {{ .Values.service.james.externalTrafficPolicy }}
+  {{- end }}
+  {{- end }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: webadmin
+      {{- if (and (eq .Values.service.james.type "NodePort") (not (empty .Values.service.james.nodePorts.http))) }}
+      nodePort: {{ .Values.service.james.nodePorts.http }}
+      {{- end }}
+    - name: smtp
+      port: 25
+      targetPort: smtp
+    - name: pop3
+      port: 110
+      targetPort: pop3
+    - name: imap
+      port: 143
+      targetPort: imap
+    - name: smtps
+      port: 465
+      targetPort: smtps
+    - name: msa
+      port: 587
+      targetPort: msa
+    - name: imaps
+      port: 993
+      targetPort: imaps
+  selector:
+    app: {{ template "james.name" . }}-james
+    release: {{ .Release.Name }}

@@ -1,0 +1,126 @@
+images:
+  james:
+    repository: codejamninja/james-cassandra-project
+    tag: 0.0.1
+  cassandra:
+    repository: cassandra
+    tag: 3.11.3
+  tika:
+    repository: linagora/docker-tikaserver
+    tag: 1.22
+  kibana:
+    repository: kibana
+    tag: 7.3.0
+
+config:
+  imagePullPolicy: IfNotPresent
+  updateStrategy: RollingUpdate
+  james:
+    baseUrl: ''
+    hostname: ''
+  cassandra:
+    hostname: ''
+  tika:
+    enabled: true
+    hostname: ''
+  elasticsearch:
+    commonConfig: ''
+    dataConfig: ''
+    database: james
+    host: ''
+    internal: true
+    kibana: false
+    masterConfig: ''
+    password: elastic
+    port: 9200
+    prometheus: false
+    replicas: 1
+    url: ''
+    username: elastic
+    version: 6.4.0
+
+service:
+  james:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    nodePorts:
+      http: ''
+  cassandra:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    nodePorts:
+      http: ''
+  tika:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    nodePorts:
+      http: ''
+  kibana:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    nodePorts:
+      http: ''
+  elasticsearch:
+    type: ClusterIP
+    externalTrafficPolicy: Cluster
+    nodePorts:
+      elasticsearch: ''
+
+ingress:
+  james:
+    certificate: ''
+    enabled: false
+    hostname: ''
+    path: /
+    tls: false
+    issuer:
+      name: letsencrypt-staging
+  kibana:
+    certificate: ''
+    enabled: false
+    hostname: ''
+    path: /
+    tls: false
+    issuer:
+      name: letsencrypt-staging
+
+
+persistence:
+  accessMode: ReadWriteOnce
+  enabled: false
+  existingClaim: ''
+  size: 1Gi
+  storageClass: ''
+  backup:
+    awsAccessKey: ''
+    awsSecretKey: ''
+    azureAccountKey: ''
+    azureAccountName: ''
+    bucket: ''
+    container: ''
+    enabled: false
+    endpoint: s3.amazonaws.com
+    googleProjectId: ''
+    googleServiceKey: ''
+    keepLast: 5
+    prefix: ''
+    resticPassword: pass
+    schedule: '0 0 * * *'
+    type: s3
+    restore:
+      jamesSnapshot: ''
+      elasticsearchSnapshot: ''
+
+probes:
+  liveness:
+    initialDelaySeconds: 120
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1

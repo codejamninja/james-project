@@ -1,0 +1,3 @@
+[template]
+src = "elasticsearch.properties.tmpl"
+dest = "/root/conf/elasticsearch.properties"

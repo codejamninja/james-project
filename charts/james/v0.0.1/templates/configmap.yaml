@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "james.fullname" . }}
+  labels:
+    app: {{ template "james.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  tika_enabled: {{ .Values.config.tika.enabled | quote }}
+  {{- $elasticsearch := .Values.config.elasticsearch }}
+  {{- if $elasticsearch.internal }}
+  elasticsearch_host: {{ template "james.fullname" . }}-elasticsearch
+  {{- else }}
+  elasticsearch_host: {{ $elasticsearch.host | quote }}
+  {{- end }}
+  elasticsearch_database: {{ $elasticsearch.database | quote }}
+  elasticsearch_port: {{ $elasticsearch.port | quote }}
+  elasticsearch_username: {{ $elasticsearch.username | quote }}

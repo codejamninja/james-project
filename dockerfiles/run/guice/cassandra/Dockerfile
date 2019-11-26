@@ -4,6 +4,10 @@
 
 FROM openjdk:8u222-jre
 
+RUN wget -O /usr/local/bin/confd \
+  https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64 && \
+  chmod +x /usr/local/bin/confd
+
 # Ports that are used
 #
 # 25   SMTP without authentication
@@ -30,14 +34,22 @@ ADD destination/glowroot/lib/glowroot-embedded-collector.jar /root/glowroot/lib/
 ADD destination/glowroot/lib/glowroot-logging-logstash.jar /root/glowroot/lib/glowroot-logging-logstash.jar
 ADD destination/glowroot/admin.json /root/glowroot/admin.json
 ADD destination/run_james.sh /root/run_james.sh
+ADD destination/confd /etc/confd/conf.d
+ADD destination/templates /etc/confd/templates
 
 VOLUME /logs
 VOLUME /root/conf
 VOLUME /root/glowroot/plugins
 VOLUME /root/glowroot/data
 
-ENV PATH "$PATH:/root/glowroot/lib" \
-    JVM_OPTIONS="" \
-    GLOWROOT_ACTIVATED="false"
+ENV CASSANDRA_NODES=cassandra \
+  ELASTICSEARCH_MASTER_HOST=elasticsearch \
+  ELASTICSEARCH_PASSWORD=secret \
+  ELASTICSEARCH_USER=elasticsearch \
+  GLOWROOT_ACTIVATED="false" \
+  JVM_OPTIONS="" \
+  PATH="$PATH:/root/glowroot/lib" \
+  TIKA_ENABLED="true" \
+  TIKA_HOST=tika
 
 ENTRYPOINT ./run_james.sh

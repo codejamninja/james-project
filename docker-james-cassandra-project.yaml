@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  build:
+    image: ${JAMES_CASSANDRA_PROJECT_IMAGE}:latest
+    build:
+      context: dockerfiles/run/guice/cassandra
+  major:
+    extends: build
+    image: ${JAMES_CASSANDRA_PROJECT_IMAGE}:${MAJOR}
+  minor:
+    extends: build
+    image: ${JAMES_CASSANDRA_PROJECT_IMAGE}:${MAJOR}.${MINOR}
+  patch:
+    extends: build
+    image: ${JAMES_CASSANDRA_PROJECT_IMAGE}:${MAJOR}.${MINOR}.${PATCH}

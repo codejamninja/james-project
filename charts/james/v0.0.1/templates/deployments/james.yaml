@@ -1,0 +1,87 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "james.fullname" . }}-james
+  labels:
+    app: {{ template "james.name" . }}-james
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  strategy:
+    type: {{ .Values.config.updateStrategy }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "james.name" . }}-james
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "james.fullname" . }}-james
+          image: {{ .Values.images.james.repository }}:{{ .Values.images.james.tag }}
+          imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          ports:
+            - name: container
+              containerPort: 80
+            - name: smtp
+              containerPort: 25
+            - name: pop3
+              containerPort: 110
+            - name: imap
+              containerPort: 143
+            - name: smtps
+              containerPort: 465
+            - name: msa
+              containerPort: 587
+            - name: imaps
+              containerPort: 993
+            - name: webadmin
+              containerPort: 8000
+          env:
+            - name: CASSANDRA_NODES
+              value: {{ template "james.fullname" . }}-cassandra
+            - name: ELASTICSEARCH_MASTER_HOST
+              value: {{ template "james.fullname" . }}-elasticsearch
+            - name: TIKA_HOST
+              value: {{ template "james.fullname" . }}-tika
+            - name: TIKA_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "james.fullname" . }}
+                  key: tika_enabled
+           {{- if .Values.config.elasticsearch.internal }}
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "james.sharedname" . }}-elasticsearch-auth
+                  key: ELASTICSEARCH_USER
+            {{- else }}
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "james.fullname" . }}
+                  key: elasticsearch_username
+            {{- end }}
+            {{- if .Values.config.elasticsearch.internal }}
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "james.sharedname" . }}-elasticsearch-auth
+                  key: ELASTICSEARCH_PASSWORD
+            {{- else }}
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "james.fullname" . }}
+                  key: elasticsearch_password
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: container
+{{ toYaml .Values.probes.liveness | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: container
+{{ toYaml .Values.probes.readiness | indent 12 }}

@@ -1,0 +1,84 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "james.fullname" . }}-cassandra
+  labels:
+    app: {{ template "james.name" . }}-cassandra
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  {{- if .Values.persistence.backup.enabled }}
+  annotations:
+    stash.appscode.com/backup-blueprint: {{ template "james.sharedname" . }}-data
+    stash.appscode.com/target-paths: /_data
+    stash.appscode.com/volume-mounts: 'data:/_data'
+  {{- end }}
+spec:
+  strategy:
+    type: {{ .Values.config.updateStrategy }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "james.name" . }}-cassandra
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "james.fullname" . }}-cassandra
+          image: {{ .Values.images.cassandra.repository }}:{{ .Values.images.cassandra.tag }}
+          imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          ports:
+            - name: container
+              containerPort: 9042
+          volumeMounts:
+            - name: data
+              mountPath: /_data
+            - name: data
+              mountPath: /var/lib/cassandra
+              subPath: data
+          env: []
+          livenessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.liveness | indent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.readiness | indent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "james.fullname" . ) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- if (and .Values.persistence.backup.enabled (not (empty .Values.persistence.backup.restore.cassandraSnapshot))) }}
+{{- $restore := .Values.persistence.backup.restore }}
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: RestoreSession
+metadata:
+  name: {{ template "james.fullname" . }}-cassandra
+  labels:
+    app: {{ template "james.name" . }}-cassandra
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  driver: Restic
+  repository:
+    name: {{ template "james.sharedname" . }}-cassandra
+  rules:
+    - snapshots:
+        - {{ $restore.cassandraSnapshot }}
+  target:
+    paths:
+      /_data
+    ref:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: {{ template "james.fullname" . }}-cassandra
+    volumeMounts:
+      - name: data
+        mountPath: /_data
+{{- end }}

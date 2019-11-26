@@ -1,0 +1,36 @@
+{{- if .Values.config.tika.enabled }}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "james.fullname" . }}-tika
+  labels:
+    app: {{ template "james.name" . }}-tika
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  strategy:
+    type: {{ .Values.config.updateStrategy }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "james.name" . }}-tika
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "james.fullname" . }}-tika
+          image: {{ .Values.images.tika.repository }}:{{ .Values.images.tika.tag }}
+          imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          ports:
+            - name: container
+              containerPort: 9998
+          env: []
+          livenessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.liveness | indent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.readiness | indent 12 }}
+{{- end }}
