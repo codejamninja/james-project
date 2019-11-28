@@ -9,7 +9,7 @@ PATCH := $(shell echo $(VERSION) | cut -d. -f3)
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: all
-all: clean pull build push
+all: pull build push
 
 .PHONY: build
 build: build-james-project build-m2 build-keystore build-james-cassandra-project
