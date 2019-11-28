@@ -43,3 +43,7 @@ pull:
 push:
 	@docker-compose -f docker-james-project.yaml push
 	@docker-compose -f docker-james-cassandra-project.yaml push
+
+.PHONY: clean
+clean:
+	@git clean -fXd
