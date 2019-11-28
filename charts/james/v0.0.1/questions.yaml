@@ -378,7 +378,7 @@ questions:
     default: true
     description: ''
     type: boolean
-    show_if: config.kibana.enabled=true
+    show_if: config.elasticsearch.kibana=true
     label: 'kibana ingress enabled'
     show_subquestion_if: true
     group: 'Services and Load Balancing'
