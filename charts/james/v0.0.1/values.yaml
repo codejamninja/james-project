@@ -1,7 +1,7 @@
 images:
   james:
     repository: codejamninja/james-cassandra-project
-    tag: 0.0.1
+    tag: 0.0.2
   cassandra:
     repository: cassandra
     tag: 3.11.3
@@ -11,6 +11,9 @@ images:
   kibana:
     repository: kibana
     tag: 7.3.0
+  elasticsearch:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: 6.3.2
 
 config:
   imagePullPolicy: IfNotPresent
@@ -24,6 +27,7 @@ config:
     enabled: true
     hostname: ''
   elasticsearch:
+    enabled: false
     commonConfig: ''
     dataConfig: ''
     database: james
@@ -83,7 +87,6 @@ ingress:
     tls: false
     issuer:
       name: letsencrypt-staging
-
 
 persistence:
   accessMode: ReadWriteOnce

@@ -1,3 +1,4 @@
+{{- if .Values.config.elasticsearch.enabled }}
 {{- if .Values.config.elasticsearch.internal }}
 apiVersion: kubedb.com/v1alpha1
 kind: Elasticsearch
@@ -131,5 +132,6 @@ spec:
   rules:
     - snapshots:
       - {{ $restore.elasticsearchSnapshot | quote }}
+{{- end }}
 {{- end }}
 {{- end }}

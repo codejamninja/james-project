@@ -1,3 +1,4 @@
+{{- if .Values.config.elasticsearch.enabled }}
 {{- if (and .Values.config.elasticsearch.internal .Values.config.elasticsearch.kibana) }}
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -45,4 +46,5 @@ spec:
               path: /
               port: container
 {{ toYaml .Values.probes.readiness | indent 12 }}
+{{- end }}
 {{- end }}

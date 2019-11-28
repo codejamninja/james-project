@@ -474,7 +474,7 @@ questions:
     label: 'james repository'
     group: Images
   - variable: images.james.tag
-    default: 0.0.1
+    default: 0.0.2
     description: ''
     type: string
     required: true
@@ -523,4 +523,18 @@ questions:
     required: true
     label: 'kibana tag'
     show_if: config.elasticsearch.kibana=true
+    group: Images
+  - variable: images.elasticsearch.repository
+    default: docker.elastic.co/elasticsearch/elasticsearch
+    description: ''
+    type: string
+    required: true
+    label: 'elasticsearch repository'
+    group: Images
+  - variable: images.elasticsearch.tag
+    default: 6.3.2
+    description: ''
+    type: string
+    required: true
+    label: 'elasticsearch tag'
     group: Images

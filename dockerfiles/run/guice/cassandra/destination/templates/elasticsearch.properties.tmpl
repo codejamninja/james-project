@@ -55,13 +55,17 @@ elasticsearch.port=9200
 # Basic auth username to access elasticsearch.
 # Ignore elasticsearch.user and elasticsearch.password to not be using authentication (default behaviour).
 # Otherwise, you need to specify both properties.
+{{- if (getenv "ELASTICSEARCH_USER") }}
 elasticsearch.user={{ getenv "ELASTICSEARCH_USER" "elasticsearch" }}
+{{- end }}
 
 # Optional.
 # Basic auth password to access elasticsearch.
 # Ignore elasticsearch.user and elasticsearch.password to not be using authentication (default behaviour).
 # Otherwise, you need to specify both properties.
+{{- if (getenv "ELASTICSEARCH_PASSWORD") }}
 elasticsearch.password=={{ getenv "ELASTICSEARCH_PASSWORD" "secret" }}
+{{- end }}
 
 # You can alternatively provide a list of hosts following this format :
 # elasticsearch.hosts=host1:9200,host2:9200

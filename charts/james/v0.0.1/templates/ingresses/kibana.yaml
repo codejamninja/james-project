@@ -1,3 +1,4 @@
+{{- if .Values.config.elasticsearch.enabled }}
 {{- if (and .Values.config.elasticsearch.internal (and .Values.config.elasticsearch.kibana .Values.ingress.kibana.enabled)) }}
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -32,4 +33,5 @@ spec:
       hosts:
         - {{ .Values.ingress.kibana.hostname }}
   {{- end }}
+{{- end }}
 {{- end }}

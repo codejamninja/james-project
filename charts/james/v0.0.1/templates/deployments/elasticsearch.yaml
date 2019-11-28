@@ -1,0 +1,36 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "james.fullname" . }}-elasticsearch
+  labels:
+    app: {{ template "james.name" . }}-elasticsearch
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  strategy:
+    type: {{ .Values.config.updateStrategy }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "james.name" . }}-elasticsearch
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "james.fullname" . }}-elasticsearch
+          image: {{ .Values.images.elasticsearch.repository }}:{{ .Values.images.elasticsearch.tag }}
+          imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          ports:
+            - name: container
+              containerPort: 9200
+          env:
+            - name: discovery.type
+              value: single-node
+          livenessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.liveness | indent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: container
+{{ toYaml .Values.probes.readiness | indent 12 }}

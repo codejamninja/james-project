@@ -1,3 +1,4 @@
+{{- if .Values.config.elasticsearch.enabled }}
 {{- if .Values.persistence.backup.enabled }}
 apiVersion: stash.appscode.com/v1beta1
 kind: BackupBlueprint
@@ -29,4 +30,5 @@ spec:
     name: retention-policy
     keepLast: {{ .Values.persistence.backup.keepLast }}
     prune: true
+{{- end }}
 {{- end }}

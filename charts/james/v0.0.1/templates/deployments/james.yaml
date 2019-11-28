@@ -49,7 +49,8 @@ spec:
                 configMapKeyRef:
                   name: {{ template "james.fullname" . }}
                   key: tika_enabled
-           {{- if .Values.config.elasticsearch.internal }}
+            {{- if .Values.config.elasticsearch.enabled }}
+            {{- if .Values.config.elasticsearch.internal }}
             - name: ELASTICSEARCH_USER
               valueFrom:
                 secretKeyRef:
@@ -74,6 +75,7 @@ spec:
                 secretKeyRef:
                   name: {{ template "james.fullname" . }}
                   key: elasticsearch_password
+            {{- end }}
             {{- end }}
           livenessProbe:
             httpGet:
