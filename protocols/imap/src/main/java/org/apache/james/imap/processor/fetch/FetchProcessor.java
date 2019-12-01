@@ -21,13 +21,11 @@ package org.apache.james.imap.processor.fetch;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.james.imap.api.ImapConstants;
 import org.apache.james.imap.api.ImapSessionUtils;
 import org.apache.james.imap.api.display.HumanReadableText;
-import org.apache.james.imap.api.message.BodyFetchElement;
 import org.apache.james.imap.api.message.FetchData;
 import org.apache.james.imap.api.message.IdRange;
 import org.apache.james.imap.api.message.response.StatusResponseFactory;
@@ -43,11 +41,9 @@ import org.apache.james.mailbox.MessageManager;
 import org.apache.james.mailbox.MessageManager.MetaData;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.exception.MessageRangeException;
-import org.apache.james.mailbox.model.FetchGroupImpl;
+import org.apache.james.mailbox.model.FetchGroup;
 import org.apache.james.mailbox.model.MessageRange;
 import org.apache.james.mailbox.model.MessageResult;
-import org.apache.james.mailbox.model.MessageResult.FetchGroup;
-import org.apache.james.mailbox.model.MessageResult.MimePath;
 import org.apache.james.mailbox.model.MessageResultIterator;
 import org.apache.james.metrics.api.MetricFactory;
 import org.apache.james.util.MDCBuilder;
@@ -149,7 +145,7 @@ public class FetchProcessor extends AbstractMailboxProcessor<FetchRequest> {
      */
     protected void processMessageRanges(ImapSession session, MessageManager mailbox, List<MessageRange> ranges, FetchData fetch, boolean useUids, MailboxSession mailboxSession, Responder responder) throws MailboxException {
         final FetchResponseBuilder builder = new FetchResponseBuilder(new EnvelopeBuilder());
-        FetchGroup resultToFetch = getFetchGroup(fetch);
+        FetchGroup resultToFetch = FetchDataConverter.getFetchGroup(fetch);
 
         for (MessageRange range : ranges) {
             MessageResultIterator messages = mailbox.getMessages(range, resultToFetch, mailboxSession);
@@ -185,58 +181,6 @@ public class FetchProcessor extends AbstractMailboxProcessor<FetchRequest> {
 
     }
 
-    protected FetchGroup getFetchGroup(FetchData fetch) {
-        FetchGroupImpl result = new FetchGroupImpl();
-
-        if (fetch.isEnvelope()) {
-            result.or(FetchGroup.HEADERS);
-        }
-        if (fetch.isBody() || fetch.isBodyStructure()) {
-            result.or(FetchGroup.MIME_DESCRIPTOR);
-        }
-
-        Collection<BodyFetchElement> bodyElements = fetch.getBodyElements();
-        if (bodyElements != null) {
-            for (BodyFetchElement element : bodyElements) {
-                final int sectionType = element.getSectionType();
-                final int[] path = element.getPath();
-                final boolean isBase = (path == null || path.length == 0);
-                switch (sectionType) {
-                    case BodyFetchElement.CONTENT:
-                        if (isBase) {
-                            addContent(result, path, isBase, FetchGroup.FULL_CONTENT);
-                        } else {
-                            addContent(result, path, isBase, FetchGroup.MIME_CONTENT);
-                        }
-                        break;
-                    case BodyFetchElement.HEADER:
-                    case BodyFetchElement.HEADER_NOT_FIELDS:
-                    case BodyFetchElement.HEADER_FIELDS:
-                        addContent(result, path, isBase, FetchGroup.HEADERS);
-                        break;
-                    case BodyFetchElement.MIME:
-                        addContent(result, path, isBase, FetchGroup.MIME_HEADERS);
-                        break;
-                    case BodyFetchElement.TEXT:
-                        addContent(result, path, isBase, FetchGroup.BODY_CONTENT);
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-        }
-        return result;
-    }
-
-    private void addContent(FetchGroupImpl result, int[] path, boolean isBase, int content) {
-        if (isBase) {
-            result.or(content);
-        } else {
-            MimePath mimePath = new MimePathImpl(path);
-            result.addPartContent(mimePath, content);
-        }
-    }
 
     @Override
     protected Closeable addContextToMDC(FetchRequest request) {

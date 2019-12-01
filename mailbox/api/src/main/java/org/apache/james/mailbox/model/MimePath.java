@@ -17,60 +17,61 @@
  * under the License.                                           *
  ****************************************************************/
 
-package org.apache.james.jmap.api.preview;
+/**
+ * 
+ */
+package org.apache.james.mailbox.model;
 
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.github.steveash.guavate.Guavate;
+import com.google.common.base.Joiner;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+/**
+ * Describes a path within a multipart MIME message. All implementations
+ * must implement equals. Two paths are equal if and only if each position
+ * is identical.
+ */
+public final class MimePath {
+    private final int[] positions;
 
-public class Preview {
-
-    private static final int MAX_LENGTH = 256;
-
-    public static Preview from(String value) {
-        return new Preview(value);
+    public MimePath(int[] positions) {
+        this.positions = Arrays.copyOf(positions, positions.length);
     }
 
-    public static Preview compute(String textBody) {
-        return Preview.from(
-            truncateToMaxLength(
-                StringUtils.normalizeSpace(textBody)));
-    }
-
-    private static String truncateToMaxLength(String body) {
-        return StringUtils.left(body, MAX_LENGTH);
-    }
-
-    private final String value;
-
-    @VisibleForTesting
-    Preview(String value) {
-        Preconditions.checkNotNull(value);
-        Preconditions.checkArgument(value.length() <= MAX_LENGTH,
-            String.format("the preview value '%s' has length longer than %d", value, MAX_LENGTH));
-
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
+    /**
+     * Gets the positions of each part in the path.
+     *
+     * @return part positions describing the path
+     */
+    public int[] getPositions() {
+        return positions;
     }
 
     @Override
     public final boolean equals(Object o) {
-        if (o instanceof Preview) {
-            Preview preview = (Preview) o;
+        if (o instanceof MimePath) {
+            MimePath mimePath = (MimePath) o;
 
-            return Objects.equals(this.value, preview.value);
+            return Arrays.equals(this.positions, mimePath.positions);
         }
         return false;
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(value);
+        return Arrays.hashCode(positions);
+    }
+
+    @Override
+    public final String toString() {
+        List<Integer> parts = Arrays.stream(positions)
+            .boxed()
+            .collect(Guavate.toImmutableList());
+
+        return "MIMEPath:"
+            + Joiner.on('.')
+            .join(parts);
     }
 }

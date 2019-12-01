@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.james.mailbox.MailboxManager;
@@ -33,9 +31,9 @@ import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.MessageManager;
 import org.apache.james.mailbox.MessageUid;
 import org.apache.james.mailbox.exception.MailboxException;
+import org.apache.james.mailbox.model.FetchGroup;
 import org.apache.james.mailbox.model.MessageRange;
 import org.apache.james.mailbox.model.MessageResult;
-import org.apache.james.mailbox.model.MessageResult.FetchGroup;
 import org.apache.james.protocols.pop3.mailbox.Mailbox;
 import org.apache.james.protocols.pop3.mailbox.MessageMetaData;
 
@@ -43,47 +41,10 @@ import com.github.steveash.guavate.Guavate;
 import com.google.common.collect.ImmutableList;
 
 public class MailboxAdapter implements Mailbox {
-
-    private abstract static class POP3FetchGroup implements FetchGroup {
-        @Override
-        public Set<PartContentDescriptor> getPartContentDescriptors() {
-            return new HashSet<>();
-        }
-    }
-
-    private static final FetchGroup FULL_GROUP = new POP3FetchGroup() {
-
-        @Override
-        public int content() {
-            return BODY_CONTENT | HEADERS;
-        }
-
-    };
-
-    private static final FetchGroup BODY_GROUP = new POP3FetchGroup() {
-
-        @Override
-        public int content() {
-            return BODY_CONTENT;
-        }
-
-    };
-
-    private static final FetchGroup HEADERS_GROUP = new POP3FetchGroup() {
-
-        @Override
-        public int content() {
-            return HEADERS;
-        }
-    };
-
-    private static final FetchGroup METADATA_GROUP = new POP3FetchGroup() {
-
-        @Override
-        public int content() {
-            return MINIMAL;
-        }
-    };
+    private static final FetchGroup FULL_GROUP = FetchGroup.FULL_CONTENT;
+    private static final FetchGroup BODY_GROUP = FetchGroup.BODY_CONTENT;
+    private static final FetchGroup HEADERS_GROUP = FetchGroup.HEADERS;
+    private static final FetchGroup METADATA_GROUP = FetchGroup.MINIMAL;
 
     private final MessageManager manager;
     private final MailboxSession session;

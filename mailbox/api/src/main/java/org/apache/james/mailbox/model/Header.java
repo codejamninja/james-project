@@ -20,57 +20,56 @@
 /**
  * 
  */
-package org.apache.james.imap.processor.fetch;
+package org.apache.james.mailbox.model;
 
-import java.util.Arrays;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import org.apache.james.mailbox.model.MessageResult;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
-final class MimePathImpl implements MessageResult.MimePath {
-    private final int[] positions;
+/**
+ * A header.
+ */
+public final class Header implements Content {
+    private final String name;
+    private final String value;
+    private final long size;
 
-    public MimePathImpl(int[] positions) {
-        super();
-        this.positions = positions;
+    public Header(String name, String value) {
+        this.name = name;
+        this.value = value;
+        this.size = name.length() + value.length() + 2;
+    }
+
+    /**
+     * Gets the name of this header.
+     *
+     * @return name of this header
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Gets the (unparsed) value of this header.
+     *
+     * @return value of this header
+     */
+    public String getValue() {
+        return value;
     }
 
     @Override
-    public int[] getPositions() {
-        return positions;
-    }
-
-    public int hashCode() {
-        return positions.length;
-    }
-
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final MimePathImpl other = (MimePathImpl) obj;
-        if (!Arrays.equals(positions, other.positions)) {
-            return false;
-        }
-        return true;
+    public long size() {
+        return size;
     }
 
     public String toString() {
-        final StringBuilder builder = new StringBuilder("MIMEPath:");
-        boolean isFirst = false;
-        for (int position : positions) {
-            if (isFirst) {
-                isFirst = false;
-            } else {
-                builder.append('.');
-            }
-            builder.append(position);
-        }
-        return builder.toString();
+        return "[HEADER " + name + ": " + value + "]";
+    }
+
+    @Override
+    public InputStream getInputStream() {
+        return new ByteArrayInputStream((name + ": " + value).getBytes(US_ASCII));
     }
 }

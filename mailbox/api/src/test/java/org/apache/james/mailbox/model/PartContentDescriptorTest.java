@@ -17,25 +17,39 @@
  * under the License.                                           *
  ****************************************************************/
 
-package org.apache.james.jmap.draft.model;
+package org.apache.james.mailbox.model;
 
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
 
-public class MessagePreviewGenerator {
-    
-    public static final String NO_BODY = "(Empty)";
-    public static final int MAX_PREVIEW_LENGTH = 256;
+import nl.jqno.equalsverifier.EqualsVerifier;
 
-    public String compute(Optional<String> textBody) {
-        return textBody.map(StringUtils::normalizeSpace)
-            .filter(text -> !text.isEmpty())
-            .map(this::truncateToMaxLength)
-            .orElse(NO_BODY);
+class PartContentDescriptorTest {
+    private static final int[] POSITION = {12};
+
+    @Test
+    void shouldMatchBeanContract() {
+        EqualsVerifier.forClass(PartContentDescriptor.class)
+            .withIgnoredFields("content")
+            .verify();
     }
 
-    private String truncateToMaxLength(String body) {
-        return StringUtils.left(body, MAX_PREVIEW_LENGTH);
+    @Test
+    void hasMaskShouldReturnFalseWhenNotContained() {
+        assertThat(new PartContentDescriptor(new MimePath(POSITION))
+                .or(FetchGroup.MIME_HEADERS_MASK)
+                .or(FetchGroup.MIME_DESCRIPTOR_MASK)
+                .hasMask(FetchGroup.HEADERS_MASK))
+            .isFalse();
+    }
+
+    @Test
+    void hasMaskShouldReturnTrueWhenContained() {
+        assertThat(new PartContentDescriptor(new MimePath(POSITION))
+                .or(FetchGroup.MIME_HEADERS_MASK)
+                .or(FetchGroup.MIME_DESCRIPTOR_MASK)
+                .hasMask(FetchGroup.MIME_HEADERS_MASK))
+            .isTrue();
     }
 }

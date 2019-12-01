@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.mail.Flags;
 
@@ -75,84 +74,6 @@ public interface MessageResult extends Comparable<MessageResult> {
 
     ModSeq getModSeq();
 
-    /**
-     * Indicates the results fetched.
-     */
-    interface FetchGroup {
-
-        /**
-         * For example: could have best performance when doing store and then
-         * forget. UIDs are always returned
-         */
-        int MINIMAL = 0x00;
-
-        /**
-         * 
-         */
-        int MIME_DESCRIPTOR = 0x01;
-
-        int HEADERS = 0x100;
-
-        int FULL_CONTENT = 0x200;
-
-        int BODY_CONTENT = 0x400;
-
-        int MIME_HEADERS = 0x800;
-
-        int MIME_CONTENT = 0x1000;
-
-        /**
-         * Contents to be fetched. Composed bitwise.
-         * 
-         * @return bitwise description
-         * @see #MINIMAL
-         * @see #MIME_DESCRIPTOR
-         * @see #HEADERS
-         * @see #FULL_CONTENT
-         * @see #BODY_CONTENT
-         * @see #MIME_HEADERS
-         * @see #MIME_CONTENT
-         */
-        int content();
-
-        /**
-         * Gets contents to be fetched for contained parts. For each part to be
-         * contained, only one descriptor should be contained.
-         * 
-         * @return <code>Set</code> of {@link PartContentDescriptor}, or null if
-         *         there is no part content to be fetched
-         */
-        Set<PartContentDescriptor> getPartContentDescriptors();
-
-        /**
-         * Describes the contents to be fetched for a mail part. All
-         * implementations MUST implement equals. Two implementations are equal
-         * if and only if their paths are equal.
-         */
-        interface PartContentDescriptor {
-            /**
-             * Contents to be fetched. Composed bitwise.
-             * 
-             * @return bitwise descripion
-             * @see #MINIMAL
-             * @see #MIME_DESCRIPTOR
-             * @see #HEADERS
-             * @see #FULL_CONTENT
-             * @see #BODY_CONTENT
-             * @see #MIME_HEADERS
-             * @see #MIME_CONTENT
-             */
-            int content();
-
-            /**
-             * Path describing the part to be fetched.
-             * 
-             * @return path describing the part, not null
-             */
-            MimePath path();
-        }
-    }
-
     MimeDescriptor getMimeDescriptor() throws MailboxException;
 
     MailboxId getMailboxId();
@@ -178,26 +99,6 @@ public interface MessageResult extends Comparable<MessageResult> {
      *         when the mime part cannot be found
      */
     Iterator<Header> iterateMimeHeaders(MimePath path) throws MailboxException;
-
-    /**
-     * A header.
-     */
-    interface Header extends Content {
-
-        /**
-         * Gets the name of this header.
-         * 
-         * @return name of this header
-         */
-        String getName();
-
-        /**
-         * Gets the (unparsed) value of this header.
-         * 
-         * @return value of this header
-         */
-        String getValue();
-    }
 
     /**
      * Gets the full message including headers and body. The message data should
@@ -266,19 +167,5 @@ public interface MessageResult extends Comparable<MessageResult> {
      * Indicates if the message have attachments, regardless of loaded attachments.
      */
     boolean hasAttachments() throws MailboxException;
-    
-    /**
-     * Describes a path within a multipart MIME message. All implementations
-     * must implement equals. Two paths are equal if and only if each position
-     * is identical.
-     */
-    interface MimePath {
 
-        /**
-         * Gets the positions of each part in the path.
-         * 
-         * @return part positions describing the path
-         */
-        int[] getPositions();
-    }
 }

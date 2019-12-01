@@ -17,50 +17,39 @@
  * under the License.                                           *
  ****************************************************************/
 
-/**
- * 
- */
-package org.apache.james.mailbox.store;
+package org.apache.james.mailbox.model;
 
-import static java.nio.charset.StandardCharsets.US_ASCII;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import org.junit.jupiter.api.Test;
 
-import org.apache.james.mailbox.model.MessageResult;
+import nl.jqno.equalsverifier.EqualsVerifier;
 
-public final class ResultHeader implements MessageResult.Header {
-    private final String name;
-    private final String value;
-    private final long size;
-
-    public ResultHeader(String name, String value) {
-        this.name = name;
-        this.value = value;
-        this.size = name.length() + value.length() + 2;
+class MimePathTest {
+    @Test
+    void shouldMatchBeanContract() {
+        EqualsVerifier.forClass(MimePath.class)
+            .verify();
     }
 
-    @Override
-    public String getName() {
-        return name;
+    @Test
+    void toStringWhenEmpty() {
+        int[] empty = {};
+        assertThat(new MimePath(empty).toString())
+            .isEqualTo("MIMEPath:");
     }
 
-    @Override
-    public String getValue() {
-        return value;
+    @Test
+    void toStringWhenSingle() {
+        int[] single = {1};
+        assertThat(new MimePath(single).toString())
+            .isEqualTo("MIMEPath:1");
     }
 
-    @Override
-    public long size() {
-        return size;
-    }
-
-    public String toString() {
-        return "[HEADER " + name + ": " + value + "]";
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        return new ByteArrayInputStream((name + ": " + value).getBytes(US_ASCII));
+    @Test
+    void toStringWhenMany() {
+        int[] many = {1, 2, 3};
+        assertThat(new MimePath(many).toString())
+            .isEqualTo("MIMEPath:1.2.3");
     }
 }

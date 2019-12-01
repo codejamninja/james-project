@@ -32,12 +32,12 @@ import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.MessageIdManager;
 import org.apache.james.mailbox.MessageManager.FlagsUpdateMode;
 import org.apache.james.mailbox.exception.MailboxException;
-import org.apache.james.mailbox.model.FetchGroupImpl;
+import org.apache.james.mailbox.model.FetchGroup;
+import org.apache.james.mailbox.model.Header;
 import org.apache.james.mailbox.model.Headers;
 import org.apache.james.mailbox.model.MailboxId;
 import org.apache.james.mailbox.model.MessageId;
 import org.apache.james.mailbox.model.MessageResult;
-import org.apache.james.mailbox.model.MessageResult.Header;
 import org.apache.james.mailbox.model.MultimailboxesSearchQuery;
 import org.apache.james.mailbox.model.SearchQuery;
 import org.apache.james.util.streams.Iterators;
@@ -93,7 +93,7 @@ public class ReferenceUpdater {
         List<MessageId> references = mailboxManager.search(searchByRFC822MessageId, session, limit);
         try {
             MessageId reference = Iterables.getOnlyElement(references);
-            List<MailboxId> mailboxIds = messageIdManager.getMessages(references, FetchGroupImpl.MINIMAL, session).stream()
+            List<MailboxId> mailboxIds = messageIdManager.getMessages(references, FetchGroup.MINIMAL, session).stream()
                 .map(MessageResult::getMailboxId)
                 .collect(Guavate.toImmutableList());
             messageIdManager.setFlags(flag, FlagsUpdateMode.ADD, reference, mailboxIds, session);

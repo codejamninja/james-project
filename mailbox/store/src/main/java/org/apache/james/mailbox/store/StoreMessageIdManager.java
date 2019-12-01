@@ -43,6 +43,7 @@ import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.exception.MailboxNotFoundException;
 import org.apache.james.mailbox.extension.PreDeletionHook;
 import org.apache.james.mailbox.model.DeleteResult;
+import org.apache.james.mailbox.model.FetchGroup;
 import org.apache.james.mailbox.model.Mailbox;
 import org.apache.james.mailbox.model.MailboxACL.Right;
 import org.apache.james.mailbox.model.MailboxId;
@@ -55,6 +56,7 @@ import org.apache.james.mailbox.model.UpdatedFlags;
 import org.apache.james.mailbox.quota.QuotaManager;
 import org.apache.james.mailbox.quota.QuotaRootResolver;
 import org.apache.james.mailbox.store.event.EventFactory;
+import org.apache.james.mailbox.store.mail.FetchGroupConverter;
 import org.apache.james.mailbox.store.mail.MailboxMapper;
 import org.apache.james.mailbox.store.mail.MessageIdMapper;
 import org.apache.james.mailbox.store.mail.MessageMapper;
@@ -135,9 +137,11 @@ public class StoreMessageIdManager implements MessageIdManager {
     }
 
     @Override
-    public List<MessageResult> getMessages(List<MessageId> messageIds, MessageResult.FetchGroup fetchGroup, MailboxSession mailboxSession) throws MailboxException {
+    public List<MessageResult> getMessages(List<MessageId> messageIds, FetchGroup fetchGroup, MailboxSession mailboxSession) throws MailboxException {
         MessageIdMapper messageIdMapper = mailboxSessionMapperFactory.getMessageIdMapper(mailboxSession);
-        List<MailboxMessage> messageList = messageIdMapper.find(messageIds, MessageMapper.FetchType.Full);
+
+        MessageMapper.FetchType fetchType = FetchGroupConverter.getFetchType(fetchGroup);
+        List<MailboxMessage> messageList = messageIdMapper.find(messageIds, fetchType);
 
         ImmutableSet<MailboxId> allowedMailboxIds = getAllowedMailboxIds(mailboxSession, messageList, Right.Read);
 
@@ -403,7 +407,7 @@ public class StoreMessageIdManager implements MessageIdManager {
         messageIdMapper.copyInMailbox(mailboxMessage);
     }
 
-    private ThrowingFunction<MailboxMessage, MessageResult> messageResultConverter(MessageResult.FetchGroup fetchGroup) {
+    private ThrowingFunction<MailboxMessage, MessageResult> messageResultConverter(FetchGroup fetchGroup) {
         return input -> ResultUtils.loadMessageResult(input, fetchGroup);
     }
 

@@ -27,9 +27,11 @@ import java.util.List;
 
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.model.Content;
+import org.apache.james.mailbox.model.FetchGroup;
+import org.apache.james.mailbox.model.Header;
 import org.apache.james.mailbox.model.MessageResult;
-import org.apache.james.mailbox.model.MessageResult.FetchGroup;
-import org.apache.james.mailbox.model.MessageResult.MimePath;
+import org.apache.james.mailbox.model.MimePath;
+import org.apache.james.mailbox.model.PartContentDescriptor;
 import org.apache.james.mailbox.store.mail.model.MailboxMessage;
 import org.apache.james.mailbox.store.streaming.PartContentBuilder;
 import org.apache.james.mime4j.MimeException;
@@ -43,8 +45,8 @@ import org.apache.james.mime4j.util.ContentUtil;
 
 public class ResultUtils {
 
-    public static List<MessageResult.Header> createHeaders(MailboxMessage document) throws IOException {
-        List<MessageResult.Header> results = new ArrayList<>();
+    public static List<Header> createHeaders(MailboxMessage document) throws IOException {
+        List<Header> results = new ArrayList<>();
         MimeStreamParser parser = new MimeStreamParser(MimeConfig.PERMISSIVE);
         parser.setContentHandler(new AbstractContentHandler() {
             @Override
@@ -75,8 +77,8 @@ public class ResultUtils {
                     fieldValue = fieldValue.substring(1);
                 }
                 
-                ResultHeader resultHeader = new ResultHeader(field.getName(), fieldValue);
-                results.add(resultHeader);
+                Header header = new Header(field.getName(), fieldValue);
+                results.add(header);
             }
         });
         try {
@@ -89,69 +91,55 @@ public class ResultUtils {
     
     /**
      * Return the {@link MessageResult} for the given {@link MailboxMessage} and {@link FetchGroup}
-     *
-     * @return result
      */
     public static MessageResult loadMessageResult(MailboxMessage message, FetchGroup fetchGroup) throws MailboxException {
         try {
-
             MessageResultImpl messageResult = new MessageResultImpl(message);
             if (fetchGroup != null) {
-                int content = fetchGroup.content();
-
-                if ((content & FetchGroup.HEADERS) > 0) {
-                    content -= FetchGroup.HEADERS;
+                if (!haveValidContent(fetchGroup)) {
+                    throw new UnsupportedOperationException("Unsupported result: " + fetchGroup.content());
                 }
-                if ((content & FetchGroup.BODY_CONTENT) > 0) {
-                    content -= FetchGroup.BODY_CONTENT;
-                }
-                if ((content & FetchGroup.FULL_CONTENT) > 0) {
-                    content -= FetchGroup.FULL_CONTENT;
-                }
-                if ((content & FetchGroup.MIME_DESCRIPTOR) > 0) {
-                    content -= FetchGroup.MIME_DESCRIPTOR;
-                }
-                if (content != 0) {
-                    throw new UnsupportedOperationException("Unsupported result: " + content);
-                }
-
                 addPartContent(fetchGroup, message, messageResult);
             }
             return messageResult;
-
         } catch (IOException | MimeException e) {
             throw new MailboxException("Unable to parse message", e);
         }
+    }
 
+    private static boolean haveValidContent(FetchGroup fetchGroup) {
+        return fetchGroup.hasOnlyMasks(FetchGroup.HEADERS_MASK,
+            FetchGroup.BODY_CONTENT_MASK,
+            FetchGroup.FULL_CONTENT_MASK,
+            FetchGroup.MIME_DESCRIPTOR_MASK);
     }
 
     private static void addPartContent(FetchGroup fetchGroup, MailboxMessage message, MessageResultImpl messageResult)
             throws MailboxException, IOException, MimeException {
-        Collection<FetchGroup.PartContentDescriptor> partContent = fetchGroup.getPartContentDescriptors();
+        Collection<PartContentDescriptor> partContent = fetchGroup.getPartContentDescriptors();
         if (partContent != null) {
-            for (FetchGroup.PartContentDescriptor descriptor: partContent) {
+            for (PartContentDescriptor descriptor: partContent) {
                 addPartContent(descriptor, message, messageResult);
             }
         }
     }
 
-    private static void addPartContent(FetchGroup.PartContentDescriptor descriptor, MailboxMessage message, MessageResultImpl messageResult)
+    private static void addPartContent(PartContentDescriptor descriptor, MailboxMessage message, MessageResultImpl messageResult)
             throws MailboxException, IOException, MimeException {
         MimePath mimePath = descriptor.path();
-        int content = descriptor.content();
-        if ((content & MessageResult.FetchGroup.FULL_CONTENT) > 0) {
+        if (descriptor.hasMask(FetchGroup.FULL_CONTENT_MASK)) {
             addFullContent(message, messageResult, mimePath);
         }
-        if ((content & MessageResult.FetchGroup.BODY_CONTENT) > 0) {
+        if (descriptor.hasMask(FetchGroup.BODY_CONTENT_MASK)) {
             addBodyContent(message, messageResult, mimePath);
         }
-        if ((content & MessageResult.FetchGroup.MIME_CONTENT) > 0) {
+        if (descriptor.hasMask(FetchGroup.MIME_CONTENT_MASK)) {
             addMimeBodyContent(message, messageResult, mimePath);
         }
-        if ((content & MessageResult.FetchGroup.HEADERS) > 0) {
+        if (descriptor.hasMask(FetchGroup.HEADERS_MASK)) {
             addHeaders(message, messageResult, mimePath);
         }
-        if ((content & MessageResult.FetchGroup.MIME_HEADERS) > 0) {
+        if (descriptor.hasMask(FetchGroup.MIME_HEADERS_MASK)) {
             addMimeHeaders(message, messageResult, mimePath);
         }
     }
@@ -186,7 +174,7 @@ public class ResultUtils {
         int[] path = path(mimePath);
         if (path != null) {
             PartContentBuilder builder = build(path, message);
-            List<MessageResult.Header> headers = builder.getMessageHeaders();
+            List<Header> headers = builder.getMessageHeaders();
             messageResult.setHeaders(mimePath, headers.iterator());
         }
     }
@@ -196,7 +184,7 @@ public class ResultUtils {
         int[] path = path(mimePath);
         if (path != null) {
             PartContentBuilder builder = build(path, message);
-            List<MessageResult.Header> headers = builder.getMimeHeaders();
+            List<Header> headers = builder.getMimeHeaders();
             messageResult.setMimeHeaders(mimePath, headers.iterator());
         }
     }
