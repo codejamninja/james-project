@@ -16,6 +16,7 @@ spec:
         app: {{ template "james.name" . }}-james
         release: {{ .Release.Name }}
     spec:
+      hostname: {{ template "james.james-hostname" . }}
       containers:
         - name: {{ template "james.fullname" . }}-james
           image: {{ .Values.images.james.repository }}:{{ .Values.images.james.tag }}

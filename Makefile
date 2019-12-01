@@ -46,4 +46,5 @@ push:
 
 .PHONY: clean
 clean:
+	-@rm -rf ~/.m2 2>/dev/null | true
 	@git clean -fXd

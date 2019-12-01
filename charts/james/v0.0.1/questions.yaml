@@ -23,6 +23,13 @@ questions:
     required: true
     label: 'update strategy'
     group: Config
+  - variable: config.james.hostname
+    default: ''
+    description: ''
+    type: string
+    required: false
+    label: 'james hostname'
+    group: Config
   - variable: config.tika.enabled
     default: true
     description: ''
