@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-
-confd -onetime -backend env
-
 if [ "$GLOWROOT_ACTIVATED" == "true" ]; then
     GLOWROOT_OPTIONS=-javaagent:/root/glowroot/glowroot.jar
 fi
