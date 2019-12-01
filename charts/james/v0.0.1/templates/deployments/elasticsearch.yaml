@@ -20,6 +20,10 @@ spec:
         - name: {{ template "james.fullname" . }}-elasticsearch
           image: {{ .Values.images.elasticsearch.repository }}:{{ .Values.images.elasticsearch.tag }}
           imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
           ports:
             - name: container
               containerPort: 9200

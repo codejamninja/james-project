@@ -21,6 +21,10 @@ spec:
         - name: {{ template "james.fullname" . }}-james
           image: {{ .Values.images.james.repository }}:{{ .Values.images.james.tag }}
           imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
           ports:
             - name: container
               containerPort: 80

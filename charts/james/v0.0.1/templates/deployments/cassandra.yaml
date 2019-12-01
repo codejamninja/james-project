@@ -26,6 +26,10 @@ spec:
         - name: {{ template "james.fullname" . }}-cassandra
           image: {{ .Values.images.cassandra.repository }}:{{ .Values.images.cassandra.tag }}
           imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1.2Gi
           ports:
             - name: container
               containerPort: 9042
